@@ -1,0 +1,30 @@
+// Code your testbench here
+// or browse Examples
+
+`timescale 1ns / 1ps
+module testbench_PPA;
+    reg [15:0] A, B;
+    reg Cin;
+    wire [15:0] S;
+    wire Cout;
+
+    // Instantiate the 16-bit Parallel Prefix Adder
+    sixteen_bit_PPA uut (A, B, Cin, S, Cout);
+
+    initial begin
+        // Setup VCD dumpfile for waveform generation
+        $dumpfile("wave.vcd");  
+        $dumpvars(0, testbench_PPA);
+
+        // Display test case results in the console
+        $monitor("A=%h, B=%h, Cin=%b => S=%h, Cout=%b", A, B, Cin, S, Cout);
+        
+        // Test cases
+        A = 16'h0005; B = 16'h0003; Cin = 0; #10; // 5 + 3
+        A = 16'hFFFF; B = 16'h0001; Cin = 0; #10; // 65535 + 1
+        A = 16'h1234; B = 16'h5678; Cin = 0; #10; // Random addition
+        A = 16'hAAAA; B = 16'h5555; Cin = 0; #10; // Alternating bits
+
+        $finish;
+    end
+endmodule
