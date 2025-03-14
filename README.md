@@ -1,1 +1,1 @@
-this is hazzy
+ECE 366 Project 1
