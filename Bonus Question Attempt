@@ -1,0 +1,79 @@
+// Code your design here
+module kogge_stone_adder_16bit(A, B, Cin, S, Cout);
+    input [15:0] A, B;
+    input Cin;
+    output [15:0] S;
+    output Cout;
+
+    wire [15:0] G, P, C;
+
+    // Generate (G) and Propagate (P) signals
+    assign G = A & B;   // Carry generate
+     assign P = A ^ B;   // Carry propagate
+
+    // Wires to hold intermediate generate and propagate values
+    wire [15:0] G1, P1, G2, P2, G3, P3, G4, P4;
+
+    // First stage (1-bit lookahead)
+    assign G1[0] = G[0];
+     assign P1[0] = P[0];
+    
+    genvar i;
+     generate
+        for (i = 1; i < 16; i = i + 1) begin
+            assign G1[i] = G[i] | (P[i] & G[i-1]);
+            assign P1[i] = P[i] & P[i-1];
+        end
+    endgenerate
+
+    // Second stage (2-bit lookahead)
+    assign G2[0] = G1[0];
+     assign P2[0] = P1[0];
+
+    generate
+        for (i = 2; i < 16; i = i + 2) begin
+            assign G2[i] = G1[i] | (P1[i] & G1[i-2]);
+            assign P2[i] = P1[i] & P1[i-2];
+        end
+    endgenerate
+
+    // Third stage (4-bit lookahead)
+    assign G3[0] = G2[0];
+     assign P3[0] = P2[0];
+
+    generate
+        for (i = 4; i < 16; i = i + 4) begin
+            assign G3[i] = G2[i] | (P2[i] & G2[i-4]);
+            assign P3[i] = P2[i] & P2[i-4];
+        end
+    endgenerate
+
+    // Fourth stage (8-bit lookahead)
+    assign G4[0] = G3[0];
+    assign P4[0] = P3[0];
+
+    generate
+        for (i = 8; i < 16; i = i + 8) begin
+            assign G4[i] = G3[i] | (P3[i] & G3[i-8]);
+            assign P4[i] = P3[i] & P3[i-8];
+        end
+    endgenerate
+
+    // Compute final carries
+    assign C[0] = Cin;
+     assign C[1] = G1[0] | (P1[0] & C[0]);
+      assign C[2] = G2[1] | (P2[1] & C[0]);
+       assign C[4] = G3[3] | (P3[3] & C[0]);
+        assign C[8] = G4[7] | (P4[7] & C[0]);
+
+    generate
+        for (i = 1; i < 16; i = i + 1) begin
+            assign C[i] = G4[i-1] | (P4[i-1] & C[i-1]);
+        end
+    endgenerate
+
+    // Compute final sum
+    assign S = P ^ C;
+     assign Cout = G4[15] | (P4[15] & C[15]);
+
+endmodule
